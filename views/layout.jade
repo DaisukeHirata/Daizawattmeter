@@ -1,0 +1,116 @@
+doctype html
+html
+  head
+    title= title
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='http://code.shutterstock.com/rickshaw/rickshaw.min.css')
+  body
+    block content
+
+    script(src='http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js')
+    script(src='http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/jquery-ui.min.js')
+    script(src='http://jquery-json.googlecode.com/files/jquery.json-2.2.min.js')
+
+    script(src='http://code.shutterstock.com/rickshaw/vendor/d3.v2.js')
+    script(src='http://code.shutterstock.com/rickshaw/rickshaw.js')
+
+    script.
+      var palette = new Rickshaw.Color.Palette();
+
+      var tv = 10;
+      var graph = new Rickshaw.Graph( {
+        element: document.getElementById("chart"),
+        width: 900,
+        height: 500,
+        renderer: 'multi',
+        stroke: true,
+        series: new Rickshaw.Series.FixedDuration([{
+          name: 'Ampere',
+          renderer: 'stack',
+          color: '#30c020'
+        }, {
+          name: 'Dead',
+          renderer: 'line',
+          color: palette.color()
+        }, {
+          name: 'Caution',
+          renderer: 'line',
+          color: '#FBE731'
+        }], undefined, {
+          timeInterval: tv * 1000,
+          maxDataPoints: 100,
+          timeBase: new Date().getTime() / 1000
+        }) 
+      } );
+
+      var y_axis = new Rickshaw.Graph.Axis.Y( {
+        graph: graph,
+        orientation: 'left',
+        tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+        element: document.getElementById('y_axis'),
+      } );
+      var legend = new Rickshaw.Graph.Legend({
+        graph: graph,
+        element: document.getElementById('legend'),
+      });
+      var shelving = new Rickshaw.Graph.Behavior.Series.Toggle({
+        graph: graph,
+        legend: legend
+      });
+      var order = new Rickshaw.Graph.Behavior.Series.Order({
+        graph: graph,
+        legend: legend
+      });
+      var highlighter = new Rickshaw.Graph.Behavior.Series.Highlight({
+        graph: graph,
+        legend: legend
+      });
+      var hoverDetail = new Rickshaw.Graph.HoverDetail( {
+        graph: graph
+      } );
+      var axes = new Rickshaw.Graph.Axis.Time( {
+        graph: graph
+      } );
+
+      graph.render();
+
+    script.
+      $.ajax({
+        url: "/lastNAmpere?n=100",
+        dataType: "json",
+        success: function( data ) {
+          data.forEach(function(ampere){
+            graph.series.addData({
+              "Ampere": ampere,
+              "Dead": 40, // breaker threshold
+              "Caution": 30, // breaker threshold
+            });
+          });
+          graph.render();
+          axes.render();
+        }
+      });
+
+    script.
+      var source = new EventSource('/update');
+      var last_render = new Date().getTime() / 1000;
+      var counter = new Array();
+ 
+      source.addEventListener('message', function(e) {
+        var data = JSON.parse(e.data);
+        $('#current_ampere').text(data.ampere + ' A');
+        var now = new Date().getTime() / 1000;
+        if(now > last_render + tv){
+          var data = {
+            "Ampere": data.ampere,
+            "Dead": 40,
+            "Caution": 30,
+          };
+          counter = new Array();
+          last_render = now;
+
+          graph.series.addData(data);
+          graph.render();
+          axes.render();
+        }
+      }, false);
