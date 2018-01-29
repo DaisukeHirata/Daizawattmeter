@@ -31,7 +31,10 @@ def is_number(s):
 
 if __name__ == '__main__':
 
+  # Daizawa Meter
   ser = serial.Serial('/dev/ttyUSB0', 9600)
+  
+  # mongodb
   client = MongoClient("mongodb://localhost:27017")
   db = client.dhmongo
 
@@ -70,8 +73,10 @@ if __name__ == '__main__':
   while True:
     current = read_current()
     if is_number(current):
+      # mongodb
       currentX10 = int(float(current) * 10)
       db.currentAmpere.insert({'ampere':currentX10})
+      # aws IoT
       message = {}
       message['ampere'] = current
       messageJson = json.dumps(message)
