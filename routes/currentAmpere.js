@@ -62,7 +62,7 @@ exports.findLastN = function(req, res) {
 };
 
 exports.update = function(req, res) {
-  req.socket.setTimeout(Infinity);
+  req.socket.setTimeout(Number.MAX_SAFE_INTEGER);
 
   var stream;
   CurrentAmpere.findOne().sort({'$natural':-1}).exec(function(err, item){

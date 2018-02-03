@@ -3,7 +3,7 @@
 
 import serial
 import re
-import daemon.runner
+#import daemon.runner
 from pymongo import MongoClient
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 import logging
@@ -16,10 +16,10 @@ def read_current():
   current = None
   try:
     current = ser.readline().rstrip()
-    if is_number(current) and float_re.match(current):
+    if is_number(current):
       current = float(current)
   except serial.SerialException:
-    print 'error'
+    print('error')
   return current
 
 def is_number(s):
@@ -32,7 +32,8 @@ def is_number(s):
 if __name__ == '__main__':
 
   # Daizawa Meter
-  ser = serial.Serial('/dev/ttyUSB0', 9600)
+  ser = serial.Serial('/dev/tty.usbserial-A8008Jr9', 9600)
+  #ser = serial.Serial('/dev/ttyUSB0', 9600)
   
   # mongodb
   client = MongoClient("mongodb://localhost:27017")
@@ -40,9 +41,9 @@ if __name__ == '__main__':
 
   # Read in command-line parameters
   host = "apolc0dvtdymz.iot.ap-northeast-1.amazonaws.com"
-  rootCAPath = "/home/pi/wattmeter/certs/root-CA.crt"
-  certificatePath = "/home/pi/wattmeter/certs/DaizawaWattMeter.cert.pem"
-  privateKeyPath = "/home/pi/wattmeter/certs/DaizawaWattMeter.private.key"
+  rootCAPath = "./certs/root-CA.crt"
+  certificatePath = "./certs/DaizawaWattMeter.cert.pem"
+  privateKeyPath = "./certs/DaizawaWattMeter.private.key"
   clientId = "basicPubSub"
   topic = "daizawattmeter"
 
@@ -70,14 +71,21 @@ if __name__ == '__main__':
   # Connect and subscribe to AWS IoT
   myAWSIoTMQTTClient.connect()
 
+  N = 60
+  i = 0
+  current_total = 0
   while True:
     current = read_current()
     if is_number(current):
       # mongodb
       currentX10 = int(float(current) * 10)
       db.currentAmpere.insert({'ampere':currentX10})
+      current_total = current_total + current
       # aws IoT
-      message = {}
-      message['ampere'] = current
-      messageJson = json.dumps(message)
-      myAWSIoTMQTTClient.publish(topic, messageJson, 1)
+      if i % N == 0:
+        message = {}
+        message['ampere'] = current_total / N
+        messageJson = json.dumps(message)
+        myAWSIoTMQTTClient.publish(topic, messageJson, 1)
+        current_total = 0
+    i = i + 1
