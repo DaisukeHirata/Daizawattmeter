@@ -25,9 +25,13 @@
         bottom: 0;
 }
 #current_ampere {
-        position: relative;
-        left: 15px;
         font-size: 50px;
         font-family: HelveticaNeue-Thin;
+        float: left;
 }
-
+#current_temperature,#current_humidity,#current_illuminance {
+        float: left;
+        font-size: 50px;
+        font-family: HelveticaNeue-Thin;
+        margin-left: 30px;
+}

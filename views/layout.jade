@@ -113,3 +113,13 @@ html
           axes.render();
         }
       }, false);
+
+    script.
+      var source = new EventSource('/updateNatureRemo');
+
+      source.addEventListener('message', function(e) {
+        var data = JSON.parse(e.data);
+        $('#current_temperature').text(data.temperature + ' °C');
+        $('#current_humidity').text(data.humidity + ' %');
+        $('#current_illuminance').text(data.illuminance + ' lm');
+      }, false);
