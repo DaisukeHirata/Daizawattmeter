@@ -91,6 +91,17 @@ html
       });
 
     script.
+      $.ajax({
+        url: "/currentNatureRemo",
+        dataType: "json",
+        success: function( data ) {
+          $('#current_temperature').text(data.temperature + ' °C');
+          $('#current_humidity').text(data.humidity + ' %');
+          $('#current_illuminance').text(data.illuminance + ' lm');
+        }
+      });
+
+    script.
       var source = new EventSource('/update');
       var last_render = new Date().getTime() / 1000;
       var counter = new Array();

@@ -149,7 +149,7 @@ exports.updateNatureRemo = function(req, res) {
       //console.log(messageCount);
       res.write('id: ' + messageCount + '\n');
       var msg = JSON.stringify({
-        humidity: doc.humidity,
+        humidity: doc.humidity+13,
         illuminance: doc.illuminance,
         temperature: doc.temperature/10.0
       });
