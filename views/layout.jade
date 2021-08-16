@@ -91,17 +91,6 @@ html
       });
 
     script.
-      $.ajax({
-        url: "/currentNatureRemo",
-        dataType: "json",
-        success: function( data ) {
-          $('#current_temperature').text(data.temperature + ' °C');
-          $('#current_humidity').text(data.humidity + ' %');
-          $('#current_illuminance').text(data.illuminance + ' lm');
-        }
-      });
-
-    script.
       var source = new EventSource('/update');
       var last_render = new Date().getTime() / 1000;
       var counter = new Array();
@@ -123,14 +112,4 @@ html
           graph.render();
           axes.render();
         }
-      }, false);
-
-    script.
-      var source = new EventSource('/updateNatureRemo');
-
-      source.addEventListener('message', function(e) {
-        var data = JSON.parse(e.data);
-        $('#current_temperature').text(data.temperature + ' °C');
-        $('#current_humidity').text(data.humidity + ' %');
-        $('#current_illuminance').text(data.illuminance + ' lm');
       }, false);
